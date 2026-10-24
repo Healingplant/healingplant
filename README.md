@@ -7,7 +7,7 @@ GitHub Pages hosts the pages for free. It cannot send email by itself, so the bo
 ## Before you share the link
 
 1. Open `config.js`.
-2. Set `sessionFeeInr` to your real fee. It is `1` for testing. `pay-qr.png` already selects Rs 1 when scanned. If you change the fee, the QR image has to be regenerated with that amount.
+2. Set `sessionFeeInr` to your real fee. It is `99`. `pay-qr.png` already selects Rs 99 when scanned. If you change the fee, the QR image has to be regenerated with that amount.
 3. Change `slots` or `openWeekdays` if you want different hours. Times are India Standard Time, Monday to Saturday. A time is hidden once it is under 4 hours away.
 
 The QR pays **Aahil Khan** and does not show the UPI ID on the page. `QR.png` is the original image. The site uses `pay-qr.png`.

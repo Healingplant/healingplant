@@ -2,8 +2,8 @@
 // Change the fee and the session times here, save, then upload this file to GitHub again.
 
 window.HEALINGPLANT = {
-  // What a person pays. The QR code does not lock an amount, so the page tells them to enter this.
-  sessionFeeInr: 1,
+  // What a person pays. pay-qr.png must use this same amount.
+  sessionFeeInr: 99,
 
   // How long one session lasts.
   sessionMinutes: 50,
@@ -16,7 +16,7 @@ window.HEALINGPLANT = {
   formEndpoint: "",
 
   // Used only to build the QR. The UPI ID is not shown on the page.
-  // pay-qr.png asks the UPI app for Rs 1 (am=1.00).
+  // pay-qr.png asks the UPI app for Rs 99 (am=99.00).
   upiId: "aahilshigli123@okhdfcbank",
   upiName: "Aahil Khan",
   qrImage: "pay-qr.png",
