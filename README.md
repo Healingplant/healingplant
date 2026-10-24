@@ -1,6 +1,6 @@
 # Healingplant
 
-Online counselling site. People enter their details, choose a day and time, pay with the UPI QR, and confirm. The site then emails the client and `sameeredit123@gmail.com`.
+Online counselling site. People enter their details, choose a day and time, pay with the UPI QR, and confirm. The site then emails the client and `Healingplant123@gmail.com`.
 
 GitHub Pages hosts the pages for free. It cannot send email by itself, so the booking form uses [FormSubmit](https://formsubmit.co), which is free and works from a static site.
 
@@ -35,10 +35,10 @@ git push -u origin main
 ## Turn the emails on (one time)
 
 1. Open the **live** GitHub Pages link. Do not test by double-clicking `index.html`. A file on your computer cannot send the emails.
-2. Check `sameeredit123@gmail.com` for a message from FormSubmit titled something like “Activate Form”.
+2. Check `Healingplant123@gmail.com` for a message from FormSubmit titled something like “Activate Form”.
 3. Click the activation link in that email.
 4. Make one test booking with your own email address. Pay nothing for the test, but type a fake reference such as `TEST123456` so you can see the full email.
-5. You should receive the booking at `sameeredit123@gmail.com`. The same email is copied to the address typed in the form. The subject is “Your Healingplant booking is confirmed”, and it says a Zoom link and passcode will arrive 4 hours before the session.
+5. You should receive the booking at `Healingplant123@gmail.com`. The same email is copied to the address typed in the form. The subject is “Your Healingplant booking is confirmed”, and it says a Zoom link and passcode will arrive 4 hours before the session.
 
 Until that activation link is clicked, real bookings will not arrive. The first submission only asks you to activate.
 

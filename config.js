@@ -9,7 +9,7 @@ window.HEALINGPLANT = {
   sessionMinutes: 50,
 
   // Booking emails go here. The client gets a confirmation. This address gets every detail.
-  counsellorEmail: "sameeredit123@gmail.com",
+  counsellorEmail: "Healingplant123@gmail.com",
 
   // Leave blank. After FormSubmit is activated it can give you a random form address.
   // Paste that full https://formsubmit.co/... address here if you want to hide your email in the code.
