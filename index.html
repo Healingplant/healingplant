@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Healingplant — Online counselling</title>
+  <meta name="description" content="Book a one-to-one online counselling session with Healingplant. Choose a time, pay by UPI, and receive your Zoom link by email.">
+  <meta name="theme-color" content="#1e3b30">
+  <meta property="og:title" content="Healingplant — Online counselling">
+  <meta property="og:description" content="Book a one-to-one online counselling session with Healingplant. Choose a time, pay by UPI, and receive your Zoom details by email.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="Logo1.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#book">Skip to booking</a>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="#top">
+        <img src="Logo1.png" alt="Healingplant">
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="#how">How it works</a>
+        <a href="#care">Care</a>
+        <a class="nav-book" href="#book">Book a session</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="wrap hero">
+      <div>
+        <img class="hero-logo" src="Logo1.png" alt="Healingplant, counseling and therapy">
+        <p class="kicker">Online counselling</p>
+        <h1>A quiet hour, <em>on your own screen.</em></h1>
+        <p class="lede">Healingplant is one-to-one counselling on Zoom. You choose a time, pay by UPI, and a confirmation comes to your email.</p>
+        <div class="hero-actions">
+          <a class="btn" href="#book">Book a session</a>
+          <a class="btn secondary" href="#how">How a session works</a>
+        </div>
+      </div>
+      <aside class="session-card">
+        <p class="kicker">This session</p>
+        <h2><span data-minutes>50</span> minutes</h2>
+        <p class="meta">On Zoom · India Standard Time</p>
+        <p class="fee-line" data-fee>₹1</p>
+        <p class="fine">Scanning the QR fills in this amount.</p>
+        <div class="soon">
+          <p>Open soon</p>
+          <ul class="soon-list" id="soon-list"></ul>
+        </div>
+      </aside>
+    </section>
+
+    <section class="wrap steps-section" id="how">
+      <ol class="steps">
+        <li>
+          <span>01</span>
+          <h2>Share a few details</h2>
+          <p>Name, age, gender, phone, and email. Submit, and the open days appear.</p>
+        </li>
+        <li>
+          <span>02</span>
+          <h2>Choose a time and pay</h2>
+          <p>Pick a day and scan the QR. <span class="nowrap"><span data-fee>₹1</span> is already selected.</span></p>
+        </li>
+        <li>
+          <span>03</span>
+          <h2>Watch your inbox</h2>
+          <p>You will receive a Zoom link and the passcode to join 4 hours before the session.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section class="wrap book" id="book">
+      <div class="book-head">
+        <p class="kicker">Booking</p>
+        <h2>Reserve your hour.</h2>
+      </div>
+      <p id="step-live" class="sr" aria-live="polite"></p>
+
+      <div class="panel" id="step-details">
+        <p class="kicker step-kicker">Step 1 of 2</p>
+        <h3 class="subhead">Who is the session for?</h3>
+        <form id="details-form" novalidate>
+          <div class="fields">
+            <div class="field wide">
+              <label for="name">Name</label>
+              <input id="name" name="name" type="text" autocomplete="name" maxlength="80" required>
+              <p class="hint">Name of the person who will attend.</p>
+              <p class="field-error" id="name-error" hidden></p>
+            </div>
+            <div class="field">
+              <label for="age">Age</label>
+              <input id="age" name="age" type="number" inputmode="numeric" min="6" max="100" step="1" required>
+              <p class="field-error" id="age-error" hidden></p>
+            </div>
+            <div class="field">
+              <label for="gender">Gender</label>
+              <select id="gender" name="gender" required>
+                <option value="">Select</option>
+                <option>Female</option>
+                <option>Male</option>
+                <option>Non-binary</option>
+                <option>Prefer not to say</option>
+              </select>
+              <p class="field-error" id="gender-error" hidden></p>
+            </div>
+            <div class="field">
+              <label for="phone">Phone</label>
+              <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="98XXXXXXXX" required>
+              <p class="field-error" id="phone-error" hidden></p>
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" autocomplete="email" maxlength="120" required>
+              <p class="field-error" id="email-error" hidden></p>
+            </div>
+          </div>
+          <p class="hint" id="guardian-note" hidden>For anyone under 18, a parent or guardian should know about this booking and be reachable on the phone number above.</p>
+          <label class="check">
+            <input id="consent" name="consent" type="checkbox">
+            <span>I agree to be contacted on this email and phone number about my session.</span>
+          </label>
+          <p class="field-error" id="consent-error" hidden></p>
+          <p class="form-error" id="details-error" role="alert" hidden></p>
+          <div class="form-actions">
+            <button class="btn" type="submit">Submit</button>
+          </div>
+          <p class="hint">Next you will see open days, times, and the payment QR.</p>
+        </form>
+      </div>
+
+      <div class="panel" id="step-pay" hidden>
+        <p class="kicker step-kicker">Step 2 of 2</p>
+        <h3 id="pay-title" class="subhead" tabindex="-1">Choose a day and pay</h3>
+        <div class="who-line">
+          <p id="who-summary"></p>
+          <button class="linkish" id="edit-details" type="button">Edit details</button>
+        </div>
+        <form id="pay-form" novalidate>
+          <div class="book-layout">
+            <div>
+              <p class="hint">Monday to Saturday, India Standard Time. Times within the next 4 hours are hidden, so the Zoom link can reach you.</p>
+              <h4 class="subhead">Days</h4>
+              <div class="day-grid" id="day-grid" aria-label="Available days" tabindex="-1"></div>
+              <p class="form-error" id="days-empty" hidden>No open times in the next three weeks. Please write to <a data-email href="mailto:sameeredit123@gmail.com">sameeredit123@gmail.com</a>.</p>
+              <button class="linkish more-days" id="more-days" type="button" hidden>Show more days</button>
+              <div id="time-block" hidden>
+                <h4 class="subhead">Times</h4>
+                <div class="time-grid" id="time-grid" aria-label="Available times"></div>
+              </div>
+              <p class="choice" id="choice">No time selected yet.</p>
+            </div>
+            <aside class="pay-card">
+              <p class="kicker">Pay by UPI</p>
+              <h3 data-fee>₹1</h3>
+              <p class="fine">Scan the QR. <span data-fee>₹1</span> is already selected, so you do not type an amount. The payee should read <span id="upi-name">Aahil Khan</span>.</p>
+              <div class="qr-frame">
+                <img id="qr" src="pay-qr.png" width="720" height="720" alt="UPI QR code for ₹1. Payee Aahil Khan.">
+              </div>
+              <div class="field">
+                <label for="utr">UPI reference</label>
+                <input id="utr" name="utr" type="text" inputmode="text" autocomplete="off" maxlength="40" spellcheck="false" placeholder="From your UPI app">
+                <p class="hint">After you pay, open the payment in Google Pay or your UPI app and copy the reference number.</p>
+              </div>
+              <p class="form-error" id="pay-error" role="alert" hidden></p>
+              <div class="form-actions">
+                <button class="btn" id="pay-btn" type="submit">I have paid</button>
+              </div>
+              <p class="pay-note">When you press I have paid, a booking confirmation is emailed straight to the address you entered. You will receive a Zoom link and the passcode to join 4 hours before the session.</p>
+            </aside>
+          </div>
+        </form>
+      </div>
+
+      <div class="done-card" id="step-done" hidden>
+        <p class="kicker">Booking confirmed</p>
+        <h2 id="done-title">Booking is confirmed.</h2>
+        <p class="lede" id="done-lead">You will receive a confirmation email soon.</p>
+        <dl class="facts" id="done-facts"></dl>
+        <div class="zoom-box">
+          <p>You will receive a Zoom link and the passcode to join <strong>4 hours before</strong> the session. Please check your inbox, and your spam folder, around that time.</p>
+        </div>
+        <button class="btn secondary" id="book-another" type="button">Book another session</button>
+      </div>
+    </section>
+
+    <section class="wrap care" id="care">
+      <div class="care-box">
+        <h2>A private hour.</h2>
+        <p>What you talk about stays in the session. The details you enter here are used to arrange that hour, and they are emailed to Healingplant.</p>
+        <p>Healingplant is not an emergency service. If you are in immediate danger, or you may act on thoughts of harming yourself, contact local emergency services on 112, or a crisis line such as AASRA (9820466726) or iCall (9152987821).</p>
+        <p>To reschedule, email <a data-email href="mailto:sameeredit123@gmail.com">sameeredit123@gmail.com</a>.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <span>Healingplant · Online counselling</span>
+      <a data-email href="mailto:sameeredit123@gmail.com">sameeredit123@gmail.com</a>
+    </div>
+  </footer>
+  <dialog id="confirm-pop" class="confirm-pop">
+    <img class="pop-logo" src="Logo1.png" alt="Healingplant">
+    <h2>Booking is confirmed.</h2>
+    <p>You will receive a confirmation email soon.</p>
+    <button class="btn" id="confirm-pop-ok" type="button">OK</button>
+  </dialog>
+  <span id="copy-status" class="sr" aria-live="polite"></span>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
