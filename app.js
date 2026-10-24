@@ -15,6 +15,12 @@
 
   let preferred = null;
   let currentDays = [];
+  let blockerKey = "";
+  let lastHeldKey = "";
+  let holdToken = 0;
+  let blockedSlots = new Set();
+  let heldByMe = null;
+  const HOLD_KEY = "healingplant-hold";
 
   function clean(value) {
     return String(value || "")
@@ -84,7 +90,7 @@
     for (let i = 0; i < Number(cfg.daysAhead); i += 1) {
       const iso = addDaysISO(start, i);
       if (!open.has(weekdayIndex(iso))) continue;
-      const times = slots.filter((time) => isBookable(iso, time));
+      const times = slots.filter((time) => isBookable(iso, time) && !blockedSlots.has(iso + "|" + time));
       if (times.length) days.push({ iso: iso, times: times });
     }
     return days;
@@ -229,7 +235,7 @@
     };
   }
 
-  function showDetails(event) {
+  async function showDetails(event) {
     event.preventDefault();
     clearDetailErrors();
     const result = validateDetails(event.currentTarget);
@@ -261,6 +267,11 @@
     $("pay-error").hidden = true;
     state.date = null;
     state.time = null;
+    try {
+      await loadBlocked();
+    } catch (error) {
+      blockedSlots = new Set();
+    }
     renderDays();
     $("step-live").textContent = "Choose a day, a time, and pay with the QR code.";
     $("pay-title").focus();
@@ -354,9 +365,281 @@
     const line = $("choice");
     if (state.date && state.time) {
       line.textContent = longDate(state.date) + ", " + timeLabel(state.time) + " " + cfg.timezoneLabel;
+      holdSlot();
     } else {
       line.textContent = "No time selected yet.";
     }
+  }
+
+  function bookingId() {
+    try {
+      const existing = sessionStorage.getItem(HOLD_KEY);
+      if (existing && /^[A-Za-z0-9-]{16,80}$/.test(existing)) return existing;
+      const created = window.crypto && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2) + "holdid";
+      sessionStorage.setItem(HOLD_KEY, created);
+      return created;
+    } catch (error) {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2) + "holdid";
+    }
+  }
+
+  function sheetQuery(action) {
+    const join = cfg.sheetUrl.indexOf("?") >= 0 ? "&" : "?";
+    return cfg.sheetUrl + join + "action=" + action + "&mine=" + encodeURIComponent(bookingId());
+  }
+
+  async function loadBlocked() {
+    blockedSlots = new Set();
+    heldByMe = null;
+    if (!cfg.sheetUrl) return;
+    const response = await fetch(sheetQuery("slots"), { method: "GET" });
+    const data = await response.json();
+    (data.blocked || []).forEach((key) => blockedSlots.add(String(key)));
+    if (data.mine && data.mine.date && data.mine.time) heldByMe = data.mine;
+  }
+
+  async function refreshOpenSlots() {
+    const before = Array.from(blockedSlots).sort().join(",");
+    const selected = state.date && state.time ? state.date + "|" + state.time : "";
+    try {
+      await loadBlocked();
+    } catch (error) {
+      return;
+    }
+    const after = Array.from(blockedSlots).sort().join(",");
+    if (before === after) return;
+    renderDays();
+    renderSoon();
+    if (selected && state.date + "|" + state.time !== selected) {
+      payError("That time was just taken. Please choose another.");
+    }
+  }
+
+  async function sheetPost(payload) {
+    const response = await fetch(cfg.sheetUrl, {
+      method: "POST",
+      redirect: "follow",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
+    });
+    const text = await response.text();
+    try {
+      return JSON.parse(text);
+    } catch (error) {
+      return { ok: false };
+    }
+  }
+
+  async function holdSlot() {
+    const details = state.details;
+    if (!state.date || !state.time || !details) return;
+    const date = state.date;
+    const time = state.time;
+    const key = date + "|" + time + "|" + details.email;
+    if (key === lastHeldKey) {
+      sendSlotBlocker();
+      return;
+    }
+    if (!cfg.sheetUrl) {
+      sendSlotBlocker();
+      lastHeldKey = key;
+      return;
+    }
+
+    const token = ++holdToken;
+    try {
+      await sheetPost({
+        action: "block",
+        id: bookingId(),
+        date: date,
+        time: time,
+        name: details.name,
+        age: String(details.age),
+        gender: details.gender,
+        phone: details.phone,
+        email: details.email,
+      });
+      if (token !== holdToken) return;
+      await loadBlocked();
+      if (token !== holdToken) return;
+      const mine = heldByMe;
+      if (mine && mine.date === date && mine.time === time) {
+        lastHeldKey = key;
+        sendSlotBlocker();
+        renderSoon();
+        return;
+      }
+      if (state.date === date && state.time === time) {
+        state.time = null;
+        payError(
+          blockedSlots.has(date + "|" + time)
+            ? "That time was just taken. Please choose another."
+            : "That time could not be saved. Please choose it again."
+        );
+        renderDays();
+      }
+    } catch (error) {
+      if (token !== holdToken || state.date !== date || state.time !== time) return;
+      state.time = null;
+      payError("That time could not be saved. Please choose it again.");
+      renderDays();
+    }
+  }
+
+  async function markSlotPaid(booking) {
+    if (!cfg.sheetUrl) return;
+    try {
+      await sheetPost({
+        action: "paid",
+        id: bookingId(),
+        date: state.date,
+        time: state.time,
+        name: booking.name,
+        age: String(booking.age),
+        gender: booking.gender,
+        phone: booking.phone,
+        email: booking.email,
+        utr: booking.utr,
+      });
+    } catch (error) {
+      // The confirmation email still sends. The time was already held.
+    }
+  }
+
+  function pad(value) {
+    return String(value).padStart(2, "0");
+  }
+
+  function istStamp(date) {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Kolkata",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(date);
+    const map = {};
+    parts.forEach((part) => {
+      map[part.type] = part.value;
+    });
+    const hour = map.hour === "24" ? "00" : map.hour;
+    return map.year + map.month + map.day + "T" + hour + map.minute + map.second;
+  }
+
+  function utcStamp(date) {
+    return (
+      date.getUTCFullYear() +
+      pad(date.getUTCMonth() + 1) +
+      pad(date.getUTCDate()) +
+      "T" +
+      pad(date.getUTCHours()) +
+      pad(date.getUTCMinutes()) +
+      pad(date.getUTCSeconds()) +
+      "Z"
+    );
+  }
+
+  function icsEscape(value) {
+    return String(value)
+      .replace(/\\/g, "\\\\")
+      .replace(/\r?\n/g, "\\n")
+      .replace(/,/g, "\\,")
+      .replace(/;/g, "\\;");
+  }
+
+  function calendarBlocker(details) {
+    const start = slotDate(state.date, state.time);
+    const end = new Date(start.getTime() + Number(cfg.sessionMinutes) * 60 * 1000);
+    const uid = "healingplant-" + state.date + "-" + state.time.replace(":", "") + "-" + details.email + "@healingplant.github.io";
+    const summary = "Healingplant session — " + details.name;
+    const description = [
+      "Online counselling session. This time is blocked.",
+      "Name: " + details.name,
+      "Age: " + details.age,
+      "Phone: " + details.phone,
+      "Email: " + details.email,
+      "Zoom link and passcode are sent by you about 4 hours before the session.",
+    ].join("\n");
+    const lines = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//Healingplant//Booking//EN",
+      "CALSCALE:GREGORIAN",
+      "METHOD:PUBLISH",
+      "BEGIN:VTIMEZONE",
+      "TZID:Asia/Kolkata",
+      "BEGIN:STANDARD",
+      "DTSTART:19700101T000000",
+      "TZOFFSETFROM:+0530",
+      "TZOFFSETTO:+0530",
+      "TZNAME:IST",
+      "END:STANDARD",
+      "END:VTIMEZONE",
+      "BEGIN:VEVENT",
+      "UID:" + icsEscape(uid),
+      "DTSTAMP:" + utcStamp(new Date()),
+      "DTSTART;TZID=Asia/Kolkata:" + istStamp(start),
+      "DTEND;TZID=Asia/Kolkata:" + istStamp(end),
+      "SUMMARY:" + icsEscape(summary),
+      "DESCRIPTION:" + icsEscape(description),
+      "STATUS:CONFIRMED",
+      "TRANSP:OPAQUE",
+      "END:VEVENT",
+      "END:VCALENDAR",
+    ];
+    return lines.join("\r\n") + "\r\n";
+  }
+
+  function calendarLink(details) {
+    const start = slotDate(state.date, state.time);
+    const end = new Date(start.getTime() + Number(cfg.sessionMinutes) * 60 * 1000);
+    const text = "Healingplant session — " + details.name;
+    const detailsText = "Phone: " + details.phone + ". Email: " + details.email + ".";
+    return (
+      "https://calendar.google.com/calendar/render?action=TEMPLATE" +
+      "&text=" + encodeURIComponent(text) +
+      "&dates=" + utcStamp(start) + "/" + utcStamp(end) +
+      "&ctz=Asia/Kolkata" +
+      "&details=" + encodeURIComponent(detailsText)
+    );
+  }
+
+  function sendSlotBlocker() {
+    const details = state.details;
+    const address = cfg.blockerEmail || cfg.counsellorEmail;
+    if (!details || !address || window.location.protocol === "file:") return;
+
+    const key = state.date + "|" + state.time + "|" + details.email;
+    if (key === blockerKey) return;
+    blockerKey = key;
+
+    const when = longDate(state.date) + ", " + timeLabel(state.time) + " " + cfg.timezoneLabel;
+    const file = new File([calendarBlocker(details)], "Healingplant-blocker.ics", { type: "text/calendar" });
+    const body = new FormData();
+    body.append("_subject", "Blocker: " + when + " — " + details.name);
+    body.append("_template", "table");
+    body.append("_captcha", "false");
+    body.append("_replyto", details.email);
+    body.append("_url", window.location.href.split("#")[0]);
+    body.append("Name", details.name);
+    body.append("Age", String(details.age));
+    body.append("Phone", details.phone);
+    body.append("Email", details.email);
+    body.append("Session", when);
+    body.append("Length", cfg.sessionMinutes + " minutes");
+    body.append("Add to calendar", calendarLink(details));
+    body.append("Calendar file", file);
+
+    fetch("https://formsubmit.co/ajax/" + address, {
+      method: "POST",
+      headers: { Accept: "application/json" },
+      body: body,
+    }).catch(() => {
+      if (blockerKey === key) blockerKey = "";
+    });
   }
 
   function payError(message) {
@@ -386,7 +669,7 @@
     ].join("\n");
   }
 
-  function submitBooking(event) {
+  async function submitBooking(event) {
     event.preventDefault();
     if (state.submitting) return;
     payError("");
@@ -431,6 +714,7 @@
     state.submitting = true;
     $("pay-btn").disabled = true;
     $("pay-btn").textContent = "Sending your confirmation…";
+    await markSlotPaid(booking);
 
     // CC sends the same email to the address the person typed.
     // FormSubmit does not deliver its autoresponse on this kind of request.
@@ -562,7 +846,7 @@
     $("guardian-note").hidden = !(Number.isInteger(age) && age < 18);
   }
 
-  function init() {
+  async function init() {
     if (!cfg) {
       $("details-error").hidden = false;
       $("details-error").textContent = "The booking settings could not be loaded.";
@@ -570,6 +854,11 @@
     }
 
     applyStaticText();
+    try {
+      await loadBlocked();
+    } catch (error) {
+      blockedSlots = new Set();
+    }
     renderSoon();
 
     if (new URLSearchParams(window.location.search).get("booked") === "1") {
@@ -615,6 +904,7 @@
     $("book-another").addEventListener("click", () => {
       try {
         sessionStorage.removeItem(STORAGE_KEY);
+        sessionStorage.removeItem(HOLD_KEY);
       } catch (error) {
         // Ignore storage failures and still leave the confirmation page.
       }
@@ -623,6 +913,11 @@
       url.hash = "book";
       window.location.href = url.toString();
     });
+
+    window.setInterval(() => {
+      if (!$("step-pay") || $("step-pay").hidden || state.submitting) return;
+      refreshOpenSlots();
+    }, 20000);
 
     window.addEventListener("pageshow", () => {
       state.submitting = false;

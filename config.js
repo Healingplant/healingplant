@@ -11,6 +11,13 @@ window.HEALINGPLANT = {
   // Booking emails go here. The client gets a confirmation. This address gets every detail.
   counsellorEmail: "healingplant123@gmail.com",
 
+  // A calendar blocker is emailed here as soon as a day and time are chosen.
+  blockerEmail: "healplant123@gmail.com",
+
+  // Apps Script web app URL from sheet-tracker.gs. The sheet records each hold.
+  // Until this is filled in, the page cannot hide a time that someone else has taken.
+  sheetUrl: "https://script.google.com/macros/s/AKfycbyUcMS8GXt0RpeM9drRTOISFotR_rVY6vFVf3-oIAzpSQhK8SpyjEuboxhU1XAlhBph5A/exec",
+
   // Leave blank. After FormSubmit is activated it can give you a random form address.
   // Paste that full https://formsubmit.co/... address here if you want to hide your email in the code.
   formEndpoint: "",

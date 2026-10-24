@@ -44,6 +44,21 @@ Until that activation link is clicked, real bookings will not arrive. The first 
 
 Pressing **I have paid** sends the email immediately and keeps the person on the confirmation page. Ask them to check spam if it is not in the inbox.
 
+Choosing a day and a time also emails a calendar blocker to `healplant123@gmail.com`. The message has a calendar file and a link that adds the session to Google Calendar for 50 minutes. That inbox needs its own FormSubmit activation the first time.
+
+## Slot tracker
+
+Taken times are stored in a private Google Sheet named **Healingplant bookings**. The page asks that sheet which times are blocked or paid, and those times are left off the list for everyone else. The sheet also keeps the person's name, phone, email, and UPI reference. Visitors cannot open the sheet.
+
+1. Open https://script.google.com while signed in to the Google account that should own the sheet.
+2. Create a project, replace the sample code with the contents of `sheet-tracker.gs`, and save.
+3. Choose **Deploy → New deployment → Web app**. Execute as **Me**. Who has access: **Anyone**.
+4. Copy the web app URL into `sheetUrl` in `config.js`.
+5. Open the web app URL once, then look in Google Drive for **Healingplant bookings**.
+6. Upload `config.js` and `app.js` to GitHub again.
+
+Until `sheetUrl` is filled in, the page cannot tell which times another person has taken. If you change the times in `config.js`, change `SLOTS` in `sheet-tracker.gs` to the same list and deploy the script again.
+
 ## After a real booking
 
 This page cannot see inside Google Pay. It sends the emails when the person says they have paid and enters their UPI reference.
